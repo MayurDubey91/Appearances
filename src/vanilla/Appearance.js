@@ -15,14 +15,20 @@ class Appearance {
       throw new Error('Appearance: container is required');
     }
 
+    // Ensure container can be measured for ratio
+    if (!this.container.style.height && !this.container.style.minHeight) {
+      this.container.style.minHeight = '400px';
+    }
+    this.container.style.display = 'flex';
+    this.container.style.flexDirection = 'column';
+    this.container.style.height = this.container.style.height || '100%';
+
     this.render();
   }
 
   render() {
     this.container.innerHTML = '';
-    this.container.style.display = 'flex';
-    this.container.style.flexDirection = 'column';
-    this.container.style.gap = '16px';
+    this.container.style.gap = '0';
     this.container.style.fontFamily = 'system-ui, sans-serif';
 
     if (this.topview) {
@@ -36,9 +42,21 @@ class Appearance {
     }
   }
 
+  applyRatio(el, view) {
+    if (view.ratio) {
+      el.style.flex = `0 0 ${view.ratio}`;
+      el.style.height = view.ratio;
+      el.style.overflow = 'hidden';
+      el.style.boxSizing = 'border-box';
+    } else {
+      el.style.flex = '1 1 auto';
+    }
+  }
+
   renderView(view, position) {
     const wrapper = document.createElement('div');
-    wrapper.className = `appearance-${position} appearance-${view.name.toLowerCase()}`;
+    wrapper.className = `appearance-${position} appearance-${(view.name || '').toLowerCase()}`;
+    this.applyRatio(wrapper, view);
 
     switch ((view.name || '').toLowerCase()) {
       case 'banner':
@@ -55,14 +73,18 @@ class Appearance {
 
   renderBanner(view) {
     const el = document.createElement('div');
-    el.style.padding = '12px';
-    el.style.border = '1px solid #e5e7eb';
-    el.style.borderRadius = '8px';
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.overflow = 'hidden';
     el.style.background = '#f9fafb';
+    el.style.position = 'relative';
 
     const file = view.file;
     if (!file) {
       el.textContent = 'Banner (no file provided)';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
       return el;
     }
 
@@ -72,30 +94,37 @@ class Appearance {
     if (lower.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/) || lower.startsWith('data:image')) {
       const img = document.createElement('img');
       img.src = url;
-      img.style.maxWidth = '100%';
-      img.style.height = 'auto';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
       img.style.display = 'block';
       el.appendChild(img);
     } else if (lower.match(/\.(mp4|webm|ogg)(\?|$)/) || lower.startsWith('data:video')) {
       const video = document.createElement('video');
       video.src = url;
       video.controls = true;
-      video.style.maxWidth = '100%';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
       el.appendChild(video);
     } else if (lower.match(/\.pdf(\?|$)/)) {
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.style.width = '100%';
-      iframe.style.height = '400px';
+      iframe.style.height = '100%';
       iframe.style.border = 'none';
       el.appendChild(iframe);
     } else if (lower.endsWith('.html') || lower.includes('text/html') || (typeof file === 'string' && file.trim().startsWith('<'))) {
       el.innerHTML = typeof file === 'string' ? file : 'HTML content';
+      el.style.overflow = 'auto';
     } else {
       const link = document.createElement('a');
       link.href = url;
       link.textContent = 'Open file';
       link.target = '_blank';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
       el.appendChild(link);
     }
 
@@ -108,6 +137,10 @@ class Appearance {
     el.style.display = 'flex';
     el.style.flexDirection = 'column';
     el.style.gap = gap;
+    el.style.height = '100%';
+    el.style.overflow = 'auto';
+    el.style.padding = '8px';
+    el.style.boxSizing = 'border-box';
 
     const fields = (view.fields || 'Name').split('||').map(f => f.trim()).filter(Boolean);
     const titleField = fields[0] || 'Name';
@@ -132,7 +165,6 @@ class Appearance {
         li.style.border = '1px solid #e5e7eb';
       }
 
-      // Selection UI
       if (selection === 'checklist') {
         const cb = document.createElement('input');
         cb.type = 'checkbox';
