@@ -7,8 +7,10 @@ export interface AppearanceItem {
 
 export interface ViewConfig {
   name: ViewName;
-  // Layout
-  ratio?: string; // e.g. "30%" — height percentage of container
+  // Layout (topview)
+  ratio?: string; // e.g. "30%" — size percentage of container
+  placement?: 'top' | 'left' | 'right'; // default 'top'
+  scrollable?: boolean; // default false → sticky
   // Banner
   file?: string | File;
   // List / item views
