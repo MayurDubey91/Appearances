@@ -6,8 +6,15 @@
   <title>Appearances — Demo</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #111; }
-    #app { max-width: 800px; margin: 0 auto 32px; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    h1 { margin-top: 0; }
+    #app {
+      max-width: 800px;
+      margin: 0 auto 32px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      height: 600px;
+      overflow: hidden;
+    }
     .links { max-width: 800px; margin: 0 auto; }
     a { color: #0969da; }
   </style>
@@ -22,114 +29,8 @@
     </p>
   </div>
 
+  <script src="src/vanilla/Appearance.js"></script>
   <script>
-    // Inlined first-draft Appearance class
-    class Appearance {
-      constructor(options) {
-        this.options = options;
-        this.container = options.container;
-        this.items = options.items || [];
-        this.topview = options.topview || null;
-        this.bottomview = options.bottomview || null;
-        if (!this.container) throw new Error('Appearance: container is required');
-        this.render();
-      }
-      render() {
-        this.container.innerHTML = '';
-        this.container.style.display = 'flex';
-        this.container.style.flexDirection = 'column';
-        this.container.style.gap = '16px';
-        this.container.style.fontFamily = 'system-ui, sans-serif';
-        if (this.topview) this.container.appendChild(this.renderView(this.topview, 'top'));
-        if (this.bottomview) this.container.appendChild(this.renderView(this.bottomview, 'bottom'));
-      }
-      renderView(view, position) {
-        const wrapper = document.createElement('div');
-        wrapper.className = `appearance-${position} appearance-${(view.name||'').toLowerCase()}`;
-        switch ((view.name || '').toLowerCase()) {
-          case 'banner': wrapper.appendChild(this.renderBanner(view)); break;
-          case 'list':
-          default: wrapper.appendChild(this.renderList(view)); break;
-        }
-        return wrapper;
-      }
-      renderBanner(view) {
-        const el = document.createElement('div');
-        el.style.padding = '12px';
-        el.style.border = '1px solid #e5e7eb';
-        el.style.borderRadius = '8px';
-        el.style.background = '#f9fafb';
-        const file = view.file;
-        if (!file) { el.textContent = 'Banner (no file provided)'; return el; }
-        const url = typeof file === 'string' ? file : URL.createObjectURL(file);
-        const lower = url.toLowerCase();
-        if (lower.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/) || lower.startsWith('data:image')) {
-          const img = document.createElement('img');
-          img.src = url; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.display = 'block';
-          el.appendChild(img);
-        } else if (lower.match(/\.(mp4|webm|ogg)(\?|$)/) || lower.startsWith('data:video')) {
-          const video = document.createElement('video');
-          video.src = url; video.controls = true; video.style.maxWidth = '100%';
-          el.appendChild(video);
-        } else if (lower.match(/\.pdf(\?|$)/)) {
-          const iframe = document.createElement('iframe');
-          iframe.src = url; iframe.style.width = '100%'; iframe.style.height = '400px'; iframe.style.border = 'none';
-          el.appendChild(iframe);
-        } else if (lower.endsWith('.html') || (typeof file === 'string' && file.trim().startsWith('<'))) {
-          el.innerHTML = typeof file === 'string' ? file : 'HTML content';
-        } else {
-          const link = document.createElement('a');
-          link.href = url; link.textContent = 'Open file'; link.target = '_blank';
-          el.appendChild(link);
-        }
-        return el;
-      }
-      renderList(view) {
-        const el = document.createElement('div');
-        const gap = view.gap || '8px';
-        el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.gap = gap;
-        const fields = (view.fields || 'Name').split('||').map(f => f.trim()).filter(Boolean);
-        const titleField = fields[0] || 'Name';
-        const otherFields = fields.slice(1);
-        const style = (view.style || '').toLowerCase();
-        const selection = view.selectiontype;
-        this.items.forEach((item, index) => {
-          const li = document.createElement('div');
-          li.style.padding = '12px 16px'; li.style.borderRadius = '8px'; li.style.background = '#fff';
-          if (style === 'border') li.style.border = '1px solid #d1d5db';
-          else if (style === 'shadow') { li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'; li.style.border = '1px solid transparent'; }
-          else li.style.border = '1px solid #e5e7eb';
-          if (selection === 'checklist') {
-            const cb = document.createElement('input'); cb.type = 'checkbox'; cb.style.marginRight = '8px'; li.appendChild(cb);
-          } else if (selection === 'select one') {
-            const radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'appearance-select'; radio.style.marginRight = '8px'; li.appendChild(radio);
-          }
-          const content = document.createElement('div'); content.style.display = 'inline-block';
-          const title = document.createElement('strong');
-          title.textContent = item[titleField] ?? item.name ?? item.Name ?? `Item ${index + 1}`;
-          content.appendChild(title);
-          otherFields.forEach(field => {
-            if (item[field] !== undefined) {
-              const p = document.createElement('div');
-              p.style.fontSize = '0.9em'; p.style.color = '#4b5563'; p.style.marginTop = '4px'; p.textContent = item[field];
-              content.appendChild(p);
-            }
-          });
-          li.appendChild(content);
-          el.appendChild(li);
-        });
-        return el;
-      }
-      update(newOptions) {
-        Object.assign(this.options, newOptions);
-        this.items = this.options.items || this.items;
-        this.topview = this.options.topview ?? this.topview;
-        this.bottomview = this.options.bottomview ?? this.bottomview;
-        this.render();
-      }
-      destroy() { if (this.container) this.container.innerHTML = ''; }
-    }
-
     const testData = [
       { id: 1, Name: 'Wireless Headphones', Description: 'Noise-cancelling, 30h battery', Price: '$129' },
       { id: 2, Name: 'Mechanical Keyboard', Description: 'RGB, hot-swappable switches', Price: '$89' },
@@ -141,13 +42,18 @@
     new Appearance({
       container: document.getElementById('app'),
       items: testData,
-      topview: { name: 'Banner', file: 'https://picsum.photos/800/200' },
+      topview: {
+        name: 'Banner',
+        file: 'https://picsum.photos/800/400',
+        ratio: '30%'
+      },
       bottomview: {
         name: 'List',
         selectiontype: 'checklist',
         style: 'Border',
         fields: 'Name||Description||Price',
-        gap: '12px'
+        gap: '12px',
+        ratio: '70%'
       }
     });
   </script>
