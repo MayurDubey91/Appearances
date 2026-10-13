@@ -118,13 +118,37 @@ class Appearance {
     const url = typeof file === 'string' ? file : URL.createObjectURL(file);
     const lower = url.toLowerCase();
 
-    if (lower.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/) || lower.startsWith('data:image')) {
+    // Improved detection: explicit types first, then common image hosts / no-extension URLs treated as images
+    const isImage =
+      lower.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/) ||
+      lower.startsWith('data:image') ||
+      lower.includes('picsum.photos') ||
+      lower.includes('unsplash.com') ||
+      lower.includes('images.unsplash.com') ||
+      lower.includes('placehold.co') ||
+      lower.includes('via.placeholder.com') ||
+      (!lower.match(/\.(pdf|mp4|webm|ogg|html|txt|json|zip)(\?|$)/) && !lower.startsWith('data:'));
+
+    if (isImage) {
       const img = document.createElement('img');
       img.src = url;
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.objectFit = 'cover';
       img.style.display = 'block';
+      img.alt = 'Banner';
+      // Fallback if image fails to load
+      img.onerror = () => {
+        el.innerHTML = '';
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = 'Open file';
+        link.target = '_blank';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.appendChild(link);
+      };
       el.appendChild(img);
     } else if (lower.match(/\.(mp4|webm|ogg)(\?|$)/) || lower.startsWith('data:video')) {
       const video = document.createElement('video');
