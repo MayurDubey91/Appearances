@@ -20,7 +20,6 @@ class Appearance {
       this.container.style.minHeight = '400px';
     }
     this.container.style.display = 'flex';
-    this.container.style.flexDirection = 'column';
     this.container.style.height = this.container.style.height || '100%';
 
     this.render();
@@ -47,6 +46,12 @@ class Appearance {
     if (this.bottomview && (this.bottomview.name === 'None' || this.bottomview.name == null)) {
       this.bottomview = null;
     }
+
+    // Defaults for topview
+    if (this.topview) {
+      this.topview.placement = this.topview.placement || 'top';
+      this.topview.scrollable = this.topview.scrollable === true; // default false
+    }
   }
 
   render() {
@@ -54,29 +59,61 @@ class Appearance {
     this.container.style.gap = '0';
     this.container.style.fontFamily = 'system-ui, sans-serif';
 
-    if (this.topview) {
-      const topEl = this.renderView(this.topview, 'top');
-      this.container.appendChild(topEl);
+    const placement = (this.topview && this.topview.placement) || 'top';
+    if (placement === 'left' || placement === 'right') {
+      this.container.style.flexDirection = 'row';
+    } else {
+      this.container.style.flexDirection = 'column';
     }
 
-    if (this.bottomview) {
-      const bottomEl = this.renderView(this.bottomview, 'bottom');
-      this.container.appendChild(bottomEl);
+    if (this.topview && placement === 'right') {
+      // For right: render bottom first so topview appears on the right
+      if (this.bottomview) {
+        const bottomEl = this.renderView(this.bottomview, 'bottom');
+        this.container.appendChild(bottomEl);
+      }
+      const topEl = this.renderView(this.topview, 'top');
+      this.container.appendChild(topEl);
+    } else {
+      if (this.topview) {
+        const topEl = this.renderView(this.topview, 'top');
+        this.container.appendChild(topEl);
+      }
+      if (this.bottomview) {
+        const bottomEl = this.renderView(this.bottomview, 'bottom');
+        this.container.appendChild(bottomEl);
+      }
     }
   }
 
   applyRatio(el, view, position) {
-    // ratio only applies to topview
+    const placement = (view.placement || 'top');
+    const isSide = placement === 'left' || placement === 'right';
+
     if (position === 'top' && view.ratio) {
       el.style.flex = `0 0 ${view.ratio}`;
-      el.style.height = view.ratio;
+      if (isSide) {
+        el.style.width = view.ratio;
+        el.style.height = '100%';
+      } else {
+        el.style.height = view.ratio;
+        el.style.width = '100%';
+      }
       el.style.overflow = 'hidden';
       el.style.boxSizing = 'border-box';
     } else {
-      // bottomview (or top without ratio) takes remaining space
       el.style.flex = '1 1 auto';
       el.style.minHeight = '0';
+      el.style.minWidth = '0';
       el.style.overflow = 'hidden';
+    }
+
+    // scrollable: false → sticky (only meaningful for topview)
+    if (position === 'top' && view.scrollable === false) {
+      el.style.position = 'sticky';
+      el.style.top = '0';
+      el.style.zIndex = '1';
+      el.style.alignSelf = 'flex-start';
     }
   }
 
@@ -118,7 +155,6 @@ class Appearance {
     const url = typeof file === 'string' ? file : URL.createObjectURL(file);
     const lower = url.toLowerCase();
 
-    // Improved detection: explicit types first, then common image hosts / no-extension URLs treated as images
     const isImage =
       lower.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/) ||
       lower.startsWith('data:image') ||
@@ -137,7 +173,6 @@ class Appearance {
       img.style.objectFit = 'cover';
       img.style.display = 'block';
       img.alt = 'Banner';
-      // Fallback if image fails to load
       img.onerror = () => {
         el.innerHTML = '';
         const link = document.createElement('a');
