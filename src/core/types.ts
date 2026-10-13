@@ -1,17 +1,24 @@
-export type ViewType = 'list' | 'grid' | 'cards' | 'table' | 'masonry';
+export type ViewName = 'Banner' | 'List' | 'Grid' | 'Cards' | 'Table' | string;
 
 export interface AppearanceItem {
   id: string | number;
   [key: string]: any;
 }
 
-export interface AppearanceConfig {
-  view?: ViewType;
-  // Custom renderers, themes, density, etc. will go here
+export interface ViewConfig {
+  name: ViewName;
+  // Banner
+  file?: string | File;
+  // List / item views
+  selectiontype?: 'checklist' | 'select one';
+  style?: 'Border' | 'shadow';
+  fields?: string; // e.g. "Name||Description"
+  gap?: string;    // "1%", "5px", etc.
 }
 
-export interface AppearancesProps {
+export interface AppearanceOptions {
+  container?: HTMLElement;
   items: AppearanceItem[];
-  config?: AppearanceConfig;
-  // renderItem, columns, etc.
+  topview?: ViewConfig;
+  bottomview?: ViewConfig;
 }
