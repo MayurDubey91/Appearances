@@ -7,7 +7,7 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #111; }
     #app {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto 32px;
       background: white;
       border-radius: 12px;
@@ -15,7 +15,7 @@
       height: 600px;
       overflow: hidden;
     }
-    .links { max-width: 800px; margin: 0 auto; }
+    .links { max-width: 900px; margin: 0 auto; }
     a { color: #0969da; }
   </style>
 </head>
@@ -45,7 +45,9 @@
       topview: {
         name: 'Banner',
         file: 'examples/banner.jpg',
-        ratio: '30%'
+        ratio: '30%',
+        placement: 'top',
+        scrollable: false
       },
       bottomview: {
         name: 'List',
