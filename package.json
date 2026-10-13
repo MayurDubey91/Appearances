@@ -1,0 +1,54 @@
+{
+  "name": "appearances",
+  "version": "0.1.0",
+  "description": "A flexible JS library for displaying items (lists, grids, cards, tables, etc.) with highly customizable appearances. Supports vanilla JS and React. Pure client-side — no API calls.",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": : {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react.esm.js",
+      "require": "./dist/react.js",
+      "types": "./dist/react.d.ts"
+    },
+    "./vanilla": {
+      "import": "./dist/vanilla.esm.js",
+      "require": "./dist/vanilla.js",
+      "types": "./dist/vanilla.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "echo \"TODO: set up build (rollup/tsup)\"",
+    "dev": "echo \"TODO: set up dev server\"",
+    "test": "echo \"TODO: add tests\""
+  },
+  "keywords": [
+    "grid",
+    "list",
+    "cards",
+    "table",
+    "views",
+    "appearances",
+    "react",
+    "vanilla"
+  ],
+  "author": "Mayur Dubey",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {}
+}
