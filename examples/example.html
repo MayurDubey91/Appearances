@@ -6,7 +6,7 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
     #app {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       background: white;
       border-radius: 12px;
@@ -27,7 +27,9 @@
       { id: 2, Name: 'Mechanical Keyboard', Description: 'RGB, hot-swappable switches', Price: '$89' },
       { id: 3, Name: '4K Monitor', Description: '27-inch IPS, 144Hz', Price: '$349' },
       { id: 4, Name: 'USB-C Hub', Description: '7-in-1 with HDMI and SD card', Price: '$45' },
-      { id: 5, Name: 'Laptop Stand', Description: 'Aluminum, adjustable height', Price: '$39' }
+      { id: 5, Name: 'Laptop Stand', Description: 'Aluminum, adjustable height', Price: '$39' },
+      { id: 6, Name: 'Webcam', Description: '1080p with microphone', Price: '$59' },
+      { id: 7, Name: 'Mouse', Description: 'Ergonomic wireless', Price: '$29' }
     ];
 
     const instance = new Appearance({
@@ -35,8 +37,10 @@
       items: testData,
       topview: {
         name: 'Banner',
-        file: 'banner.jpg',   // local image in examples/
-        ratio: '30%'
+        file: 'banner.jpg',
+        ratio: '30%',
+        placement: 'left',      // top | left | right (default: top)
+        scrollable: false       // default false → sticky
       },
       bottomview: {
         name: 'List',
