@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Appearances — Standalone Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
+    #app { max-width: 800px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    class Appearance {
+      constructor(options) {
+        this.options = options;
+        this.container = options.container;
+        this.items = options.items || [];
+        this.topview = options.topview || null;
+        this.bottomview = options.bottomview || null;
+        if (!this.container) throw new Error('Appearance: container is required');
+        this.render();
+      }
+      render() {
+        this.container.innerHTML = '';
+        this.container.style.display = 'flex';
+        this.container.style.flexDirection = 'column';
+        this.container.style.gap = '16px';
+        this.container.style.fontFamily = 'system-ui, sans-serif';
+        if (this.topview) this.container.appendChild(this.renderView(this.topview, 'top'));
+        if (this.bottomview) this.container.appendChild(this.renderView(this.bottomview, 'bottom'));
+      }
+      renderView(view, position) {
+        const wrapper = document.createElement('div');
+        switch ((view.name || '').toLowerCase()) {
+          case 'banner': wrapper.appendChild(this.renderBanner(view)); break;
+          default: wrapper.appendChild(this.renderList(view)); break;
+        }
+        return wrapper;
+      }
+      renderBanner(view) {
+        const el = document.createElement('div');
+        el.style.padding = '12px'; el.style.border = '1px solid #e5e7eb'; el.style.borderRadius = '8px'; el.style.background = '#f9fafb';
+        const file = view.file;
+        if (!file) { el.textContent = 'Banner (no file)'; return el; }
+        const url = typeof file === 'string' ? file : URL.createObjectURL(file);
+        const lower = url.toLowerCase();
+        if (lower.match(/\.(jpg|jpeg|png|gif|webp|svg)/) || lower.startsWith('data:image')) {
+          const img = document.createElement('img'); img.src = url; img.style.maxWidth = '100%'; img.style.display = 'block'; el.appendChild(img);
+        } else if (lower.match(/\.(mp4|webm|ogg)/)) {
+          const video = document.createElement('video'); video.src = url; video.controls = true; video.style.maxWidth = '100%'; el.appendChild(video);
+        } else if (lower.endsWith('.pdf')) {
+          const iframe = document.createElement('iframe'); iframe.src = url; iframe.style.width = '100%'; iframe.style.height = '400px'; iframe.style.border = 'none'; el.appendChild(iframe);
+        } else if (typeof file === 'string' && file.trim().startsWith('<')) {
+          el.innerHTML = file;
+        } else {
+          const a = document.createElement('a'); a.href = url; a.textContent = 'Open file'; a.target = '_blank'; el.appendChild(a);
+        }
+        return el;
+      }
+      renderList(view) {
+        const el = document.createElement('div');
+        el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.gap = view.gap || '8px';
+        const fields = (view.fields || 'Name').split('||').map(f => f.trim()).filter(Boolean);
+        const titleField = fields[0] || 'Name';
+        const otherFields = fields.slice(1);
+        const style = (view.style || '').toLowerCase();
+        const selection = view.selectiontype;
+        this.items.forEach((item, i) => {
+          const li = document.createElement('div');
+          li.style.padding = '12px 16px'; li.style.borderRadius = '8px'; li.style.background = '#fff';
+          if (style === 'border') li.style.border = '1px solid #d1d5db';
+          else if (style === 'shadow') { li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'; li.style.border = '1px solid transparent'; }
+          else li.style.border = '1px solid #e5e7eb';
+          if (selection === 'checklist') { const cb = document.createElement('input'); cb.type = 'checkbox'; cb.style.marginRight = '8px'; li.appendChild(cb); }
+          else if (selection === 'select one') { const r = document.createElement('input'); r.type = 'radio'; r.name = 'appearance-select'; r.style.marginRight = '8px'; li.appendChild(r); }
+          const content = document.createElement('div'); content.style.display = 'inline-block';
+          const title = document.createElement('strong'); title.textContent = item[titleField] ?? item.Name ?? `Item ${i+1}`; content.appendChild(title);
+          otherFields.forEach(f => { if (item[f] != null) { const p = document.createElement('div'); p.style.fontSize = '0.9em'; p.style.color = '#4b5563'; p.style.marginTop = '4px'; p.textContent = item[f]; content.appendChild(p); } });
+          li.appendChild(content); el.appendChild(li);
+        });
+        return el;
+      }
+    }
+
+    const testData = [
+      { id: 1, Name: 'Wireless Headphones', Description: 'Noise-cancelling, 30h battery', Price: '$129' },
+      { id: 2, Name: 'Mechanical Keyboard', Description: 'RGB, hot-swappable switches', Price: '$89' },
+      { id: 3, Name: '4K Monitor', Description: '27-inch IPS, 144Hz', Price: '$349' }
+    ];
+
+    new Appearance({
+      container: document.getElementById('app'),
+      items: testData,
+      topview: { name: 'Banner', file: 'https://picsum.photos/800/180' },
+      bottomview: { name: 'List', selectiontype: 'checklist', style: 'shadow', fields: 'Name||Description||Price', gap: '10px' }
+    });
+  </script>
+</body>
+</html>
