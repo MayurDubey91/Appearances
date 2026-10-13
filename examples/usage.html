@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Appearances — Usage Guide</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #111; }
+    pre { background: #f4f4f5; padding: 16px; border-radius: 8px; overflow: auto; }
+    code { background: #f4f4f5; padding: 2px 6px; border-radius: 4px; }
+    h1, h2 { color: #0f172a; }
+  </style>
+</head>
+<body>
+  <h1>Appearances Library</h1>
+  <p>Pure client-side library for displaying items with different appearances (Banner, List, and more). Supports vanilla JS and React. No API calls — you supply the data.</p>
+
+  <h2>Vanilla JS</h2>
+  <pre><code>const instance = new Appearance({
+  container: document.getElementById('app'),
+  items: data,
+  topview: {
+    name: 'Banner',
+    file: 'https://example.com/banner.jpg'  // image, pdf, video, html, or other
+  },
+  bottomview: {
+    name: 'List',
+    selectiontype: 'checklist',   // or 'select one'
+    style: 'Border',              // or 'shadow'
+    fields: 'Name||Description',  // first field = title
+    gap: '1%'                     // or '5px', '2%', etc.
+  }
+});
+
+// Later
+instance.update({ items: newData });
+instance.destroy();
+</code></pre>
+
+  <h2>React</h2>
+  <pre><code><Appearance
+  items={data}
+  topview={{ name: 'Banner', file: '...' }}
+  bottomview={{
+    name: 'List',
+    selectiontype: 'checklist',
+    style: 'Border',
+    fields: 'Name||Description',
+    gap: '1%'
+  }}
+/>
+</code></pre>
+
+  <h2>View options</h2>
+  <ul>
+    <li><strong>name</strong>: <code>'Banner'</code> | <code>'List'</code> | (more coming)</li>
+    <li><strong>file</strong> (Banner): URL or content for image / pdf / video / html / other</li>
+    <li><strong>selectiontype</strong>: <code>'checklist'</code> or <code>'select one'</code></li>
+    <li><strong>style</strong>: <code>'Border'</code> or <code>'shadow'</code></li>
+    <li><strong>fields</strong>: e.g. <code>'Name||Description||Price'</code> — first is the title</li>
+    <li><strong>gap</strong>: CSS gap value (<code>'1%'</code>, <code>'5px'</code>, <code>'10px'</code>, …)</li>
+  </ul>
+
+  <h2>Notes</h2>
+  <ul>
+    <li>Any view can be used as topview or bottomview.</li>
+    <li>If <code>fields</code> is omitted it defaults to <code>Name</code>.</li>
+    <li>This is the first draft — more views and options will be added.</li>
+  </ul>
+
+  <p><a href="example.html">See a live example with test data →</a></p>
+</body>
+</html>
