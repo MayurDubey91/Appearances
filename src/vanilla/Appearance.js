@@ -42,21 +42,25 @@ class Appearance {
     }
   }
 
-  applyRatio(el, view) {
-    if (view.ratio) {
+  applyRatio(el, view, position) {
+    // ratio only applies to topview
+    if (position === 'top' && view.ratio) {
       el.style.flex = `0 0 ${view.ratio}`;
       el.style.height = view.ratio;
       el.style.overflow = 'hidden';
       el.style.boxSizing = 'border-box';
     } else {
+      // bottomview (or top without ratio) takes remaining space
       el.style.flex = '1 1 auto';
+      el.style.minHeight = '0';
+      el.style.overflow = 'hidden';
     }
   }
 
   renderView(view, position) {
     const wrapper = document.createElement('div');
     wrapper.className = `appearance-${position} appearance-${(view.name || '').toLowerCase()}`;
-    this.applyRatio(wrapper, view);
+    this.applyRatio(wrapper, view, position);
 
     switch ((view.name || '').toLowerCase()) {
       case 'banner':
