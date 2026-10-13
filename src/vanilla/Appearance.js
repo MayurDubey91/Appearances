@@ -5,15 +5,15 @@
 
 class Appearance {
   constructor(options) {
-    this.options = options;
-    this.container = options.container;
-    this.items = options.items || [];
-    this.topview = options.topview || null;
-    this.bottomview = options.bottomview || null;
+    this.options = options || {};
+    this.container = this.options.container;
+    this.items = this.options.items || [];
 
     if (!this.container) {
       throw new Error('Appearance: container is required');
     }
+
+    this.resolveViews();
 
     // Ensure container can be measured for ratio
     if (!this.container.style.height && !this.container.style.minHeight) {
@@ -24,6 +24,29 @@ class Appearance {
     this.container.style.height = this.container.style.height || '100%';
 
     this.render();
+  }
+
+  resolveViews() {
+    const hasTop = this.options.topview != null;
+    const hasBottom = this.options.bottomview != null;
+
+    if (!hasTop && !hasBottom) {
+      // Both missing → topview: None, bottomview: List
+      this.topview = null;
+      this.bottomview = { name: 'List' };
+    } else {
+      // Individual missing → None
+      this.topview = hasTop ? this.options.topview : null;
+      this.bottomview = hasBottom ? this.options.bottomview : null;
+    }
+
+    // Explicit None (name: 'None' or null) does nothing
+    if (this.topview && (this.topview.name === 'None' || this.topview.name == null)) {
+      this.topview = null;
+    }
+    if (this.bottomview && (this.bottomview.name === 'None' || this.bottomview.name == null)) {
+      this.bottomview = null;
+    }
   }
 
   render() {
@@ -210,8 +233,7 @@ class Appearance {
   update(newOptions) {
     Object.assign(this.options, newOptions);
     this.items = this.options.items || this.items;
-    this.topview = this.options.topview ?? this.topview;
-    this.bottomview = this.options.bottomview ?? this.bottomview;
+    this.resolveViews();
     this.render();
   }
 
