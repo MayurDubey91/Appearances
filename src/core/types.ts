@@ -7,6 +7,8 @@ export interface AppearanceItem {
 
 export interface ViewConfig {
   name: ViewName;
+  // Layout
+  ratio?: string; // e.g. "30%" — height percentage of container
   // Banner
   file?: string | File;
   // List / item views
