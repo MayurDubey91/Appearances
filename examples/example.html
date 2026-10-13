@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Appearances — Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
+    #app { max-width: 800px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    h1 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Load the draft implementation -->
+  <script src="../src/vanilla/Appearance.js"></script>
+
+  <script>
+    const testData = [
+      { id: 1, Name: 'Wireless Headphones', Description: 'Noise-cancelling, 30h battery', Price: '$129' },
+      { id: 2, Name: 'Mechanical Keyboard', Description: 'RGB, hot-swappable switches', Price: '$89' },
+      { id: 3, Name: '4K Monitor', Description: '27-inch IPS, 144Hz', Price: '$349' },
+      { id: 4, Name: 'USB-C Hub', Description: '7-in-1 with HDMI and SD card', Price: '$45' },
+      { id: 5, Name: 'Laptop Stand', Description: 'Aluminum, adjustable height', Price: '$39' }
+    ];
+
+    const instance = new Appearance({
+      container: document.getElementById('app'),
+      items: testData,
+      topview: {
+        name: 'Banner',
+        file: 'https://picsum.photos/800/200'   // random image
+      },
+      bottomview: {
+        name: 'List',
+        selectiontype: 'checklist',
+        style: 'Border',
+        fields: 'Name||Description||Price',
+        gap: '12px'
+      }
+    });
+
+    // Optional: expose for console testing
+    window.appearanceInstance = instance;
+  </script>
+</body>
+</html>
