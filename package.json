@@ -7,28 +7,47 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/index.js",
-      "require": "./dist/react/index.cjs"
+      "import": {
+        "types": "./dist/react/index.d.ts",
+        "default": "./dist/react/index.js"
+      },
+      "require": {
+        "types": "./dist/react/index.d.cts",
+        "default": "./dist/react/index.cjs"
+      }
     },
     "./vanilla": {
-      "types": "./dist/vanilla/index.d.ts",
-      "import": "./dist/vanilla/index.js",
-      "require": "./dist/vanilla/index.cjs"
+      "import": {
+        "types": "./dist/vanilla/index.d.ts",
+        "default": "./dist/vanilla/index.js"
+      },
+      "require": {
+        "types": "./dist/vanilla/index.d.cts",
+        "default": "./dist/vanilla/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "echo \"TODO: set up build (rollup/tsup)\"",
-    "dev": "echo \"TODO: set up dev server\"",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run build",
     "test": "echo \"TODO: add tests\""
   },
   "keywords": [
@@ -53,11 +72,14 @@
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
-    "typescript": "^7.0.2"
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "type": "module",
   "sideEffects": [
     "./src/vanilla/Appearance.js",
     "./dist/vanilla/*"
-  ]
+  ],
+  "jsdelivr": "./dist/appearances.global.js",
+  "unpkg": "./dist/appearances.global.js"
 }
