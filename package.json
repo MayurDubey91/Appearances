@@ -49,7 +49,8 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run typecheck && npm run build",
     "test": "echo \"TODO: add tests\"",
-    "smoke:security": "node scripts/security-smoke.mjs"
+    "smoke:security": "node scripts/security-smoke.mjs",
+    "smoke:api": "node scripts/api-smoke.mjs"
   },
   "keywords": [
     "grid",
