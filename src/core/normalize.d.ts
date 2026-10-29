@@ -7,11 +7,13 @@
  * 'checklist', 'select one' or a 'Name||Description' fields string) throw a
  * TypeError naming the accepted values.
  */
-import type { AppearanceOptions, Item, ItemId, Placement, Selection, SelectionType, SelectionValue, ViewConfig, ViewName, ViewStyle } from './types';
+import type { AppearanceOptions, Item, ItemId, Placement, Selection, SelectionType, SelectionValue, ViewConfig, ViewName, ViewStyle, Columns, ItemViewName, SortDirection, SortState } from './types';
 export declare const VIEW_NAMES: readonly ViewName[];
 export declare const SELECTION_TYPES: readonly SelectionType[];
 export declare const VIEW_STYLES: readonly ViewStyle[];
 export declare const PLACEMENTS: readonly Placement[];
+/** Views that render items and can drive selection. */
+export declare const ITEM_VIEWS: readonly ItemViewName[];
 /** A view config with every option validated and defaulted. */
 export interface NormalizedView extends ViewConfig {
     name: Exclude<ViewName, 'none'>;
@@ -21,6 +23,12 @@ export interface NormalizedView extends ViewConfig {
     style: ViewStyle;
     fields: string[];
     gap: string;
+    /** grid / cards. */
+    columns?: Columns;
+    /** table. */
+    sortable?: boolean;
+    /** table. */
+    sticky?: boolean;
 }
 /** Validate one view config and fill defaults. Returns `null` for a missing view or `name: 'none'`. */
 export declare function normalizeView(view: ViewConfig | null | undefined, slot?: string): NormalizedView | null;
@@ -34,7 +42,7 @@ export declare function normalizeViews(options: Pick<AppearanceOptions, 'topview
 };
 /** Key used for an item in selection state: its `id`, falling back to its index. */
 export declare function itemKey(item: Item, index: number): ItemId;
-/** The instance's selection mode: that of the first list view whose selectiontype is not `'none'`. */
+/** The instance's selection mode: that of the first item view (list/grid/cards/table) whose selectiontype is not `'none'`. */
 export declare function selectionMode(views: Array<NormalizedView | null>): SelectionType;
 /** Convert a public `SelectionValue` into internal key state for the given mode. */
 export declare function toSelectionKeys(value: SelectionValue | undefined, mode: SelectionType): ItemId[];
@@ -44,3 +52,19 @@ export declare function toggleSelectionKey(keys: ItemId[], key: ItemId, mode: Se
 export declare function pruneSelectionKeys(items: Item[], keys: ItemId[]): ItemId[];
 /** Resolve key state to items: `Item | null` (single), `Item[]` in `items` order (multiple), `null` (none). */
 export declare function resolveSelection(items: Item[], keys: ItemId[], mode: SelectionType): Selection;
+/** Text for an item field: `''` for null/undefined, otherwise `String(value)`. */
+export declare function fieldText(item: Item, field: string): string;
+/** CSS `grid-template-columns` for a `columns` option. */
+export declare function gridTemplate(columns: Columns, min?: string): string;
+/** Border / shadow for an item tile, matching the list styles. */
+export declare function tileStyle(style: ViewStyle): { border: string; boxShadow: string };
+/** Header labels for a table: `headers[i]` when given, else the field name. */
+export declare function tableHeaders(view: NormalizedView): string[];
+/** Locale-aware comparison; numbers and numeric strings compare numerically; empty values last. */
+export declare function compareValues(a: unknown, b: unknown): number;
+/** Indices of `items` sorted by `field` (stable); empty values always last. */
+export declare function sortedIndices(items: Item[], field?: string | null, dir?: SortDirection): number[];
+/** Next sort state after clicking a header: asc first, then toggles. */
+export declare function nextSort(current: SortState | null, field: string): SortState;
+/** `aria-sort` value for a header. */
+export declare function ariaSort(sort: SortState | null, field: string): 'none' | 'ascending' | 'descending';

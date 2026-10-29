@@ -38,7 +38,7 @@ check('defaults: no views → list, fields → [Name], selectiontype → none', 
 
 check('pre-0.2 option forms are rejected with a TypeError', () => {
   const bad = [
-    [{ name: 'List' }, /name "List".*'banner', 'list', 'none'/],
+    [{ name: 'List' }, /name "List".*'banner', 'list', 'grid', 'cards', 'table', 'none'/],
     [{ name: 'Banner', file: 'x.jpg' }, /name "Banner"/],
     [{ name: 'None' }, /name "None"/],
     [{ name: 'list', style: 'Border' }, /style "Border".*'none', 'border', 'shadow'/],

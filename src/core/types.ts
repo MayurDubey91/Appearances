@@ -10,7 +10,22 @@ export interface AppearanceItem {
 export type Item = AppearanceItem;
 
 /** View kinds. `'none'` renders nothing for that slot. */
-export type ViewName = 'banner' | 'list' | 'none';
+export type ViewName = 'banner' | 'list' | 'grid' | 'cards' | 'table' | 'none';
+
+/** Views that render items (and can drive selection). */
+export type ItemViewName = 'list' | 'grid' | 'cards' | 'table';
+
+/** Grid / cards column count: a positive integer or `'auto'` (responsive fill). Default `'auto'`. */
+export type Columns = number | 'auto';
+
+/** Table sort direction. */
+export type SortDirection = 'asc' | 'desc';
+
+/** Table sort state. */
+export interface SortState {
+  field: string;
+  dir: SortDirection;
+}
 
 /** List selection mode. Default `'none'`. */
 export type SelectionType = 'none' | 'single' | 'multiple';
@@ -50,6 +65,21 @@ export interface ViewConfig {
   fields?: string[];
   /** CSS gap, e.g. `'1%'`, `'5px'`. */
   gap?: string;
+  // Grid / cards
+  /** Number of columns, or `'auto'` for a responsive fill. Default `'auto'`. */
+  columns?: Columns;
+  /** Item key holding an image URL (validated with `safeUrl`). */
+  image?: string;
+  // Cards
+  /** Item key rendered in the card footer. */
+  footer?: string;
+  // Table
+  /** Header labels, in `fields` order. Defaults to the field names. */
+  headers?: string[];
+  /** Click a header to sort asc/desc. Default `false`. */
+  sortable?: boolean;
+  /** Sticky header row. Default `false`. */
+  sticky?: boolean;
 }
 
 export interface SelectInfo {
@@ -78,6 +108,6 @@ export interface AppearanceOptions {
   bottomview?: ViewConfig;
   /** Initial selection (uncontrolled), by item id. */
   defaultSelected?: SelectionValue;
-  /** Called when the user toggles an item in a list with `selectiontype` `'single'` or `'multiple'`. */
+  /** Called when the user toggles an item in a list/grid/cards/table view with `selectiontype` `'single'` or `'multiple'`. */
   onSelect?: OnSelect;
 }

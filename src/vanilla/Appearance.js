@@ -12,6 +12,13 @@ import {
   pruneSelectionKeys,
   resolveSelection,
   itemKey,
+  fieldText,
+  gridTemplate,
+  tileStyle,
+  tableHeaders,
+  sortedIndices,
+  nextSort,
+  ariaSort,
 } from '../core/normalize.js';
 
 let instanceSeq = 0;
@@ -24,6 +31,7 @@ export class Appearance {
     this._id = ++instanceSeq;
     this._inputs = [];
     this._objectUrls = [];
+    this._sort = {};
 
     if (!this.container) {
       throw new Error('Appearance: container is required');
@@ -153,6 +161,12 @@ export class Appearance {
 
     if (view.name === 'banner') {
       wrapper.appendChild(this.renderBanner(view));
+    } else if (view.name === 'grid') {
+      wrapper.appendChild(this.renderGrid(view, position));
+    } else if (view.name === 'cards') {
+      wrapper.appendChild(this.renderCards(view, position));
+    } else if (view.name === 'table') {
+      wrapper.appendChild(this.renderTable(view, position));
     } else {
       wrapper.appendChild(this.renderList(view, position));
     }
@@ -349,6 +363,247 @@ export class Appearance {
       el.appendChild(li);
     });
 
+    return el;
+  }
+
+  /** Selection checkbox/radio for an item, wired like the list view. Returns null when selectiontype is 'none'. */
+  _selectInput(view, item, index, position) {
+    const selection = view.selectiontype;
+    if (selection !== 'multiple' && selection !== 'single') return null;
+    const interactive = selection === this.selectionMode;
+    const input = document.createElement('input');
+    input.type = selection === 'multiple' ? 'checkbox' : 'radio';
+    if (selection === 'single') input.name = `appearance-select-${this._id}-${position}`;
+    const label = fieldText(item, view.fields[0]) || `Item ${index + 1}`;
+    input.setAttribute('aria-label', `Select ${label}`);
+    if (interactive) {
+      const key = itemKey(item, index);
+      input.checked = this._selection.includes(key);
+      input.addEventListener('change', () => this._toggle(index));
+      this._inputs.push({ input, key });
+    } else {
+      input.disabled = true;
+    }
+    return input;
+  }
+
+  _scrollBox(view, display) {
+    const el = document.createElement('div');
+    el.style.height = '100%';
+    el.style.overflow = 'auto';
+    el.style.padding = '8px';
+    el.style.boxSizing = 'border-box';
+    if (display === 'grid') {
+      el.style.display = 'grid';
+      el.style.gap = view.gap;
+      el.style.gridTemplateColumns = gridTemplate(view.columns, view.name === 'cards' ? '220px' : '160px');
+      el.style.alignContent = 'start';
+    }
+    return el;
+  }
+
+  _image(item, field, alt) {
+    if (!field) return null;
+    const src = safeUrl(item[field], 'image');
+    if (!src) return null;
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt;
+    img.loading = 'lazy';
+    img.style.width = '100%';
+    img.style.display = 'block';
+    img.style.objectFit = 'cover';
+    return img;
+  }
+
+  _tile(view, className) {
+    const tile = document.createElement('div');
+    tile.className = `appearance-item ${className}`;
+    const t = tileStyle(view.style);
+    tile.style.border = t.border;
+    tile.style.boxShadow = t.boxShadow;
+    tile.style.borderRadius = '8px';
+    tile.style.background = '#fff';
+    tile.style.overflow = 'hidden';
+    tile.style.boxSizing = 'border-box';
+    return tile;
+  }
+
+  renderGrid(view, position = 'bottom') {
+    const el = this._scrollBox(view, 'grid');
+    const [titleField, ...otherFields] = view.fields;
+    this.items.forEach((item, index) => {
+      const tile = this._tile(view, 'appearance-grid-item');
+      const img = this._image(item, view.image, fieldText(item, titleField));
+      if (img) {
+        img.style.aspectRatio = '1 / 1';
+        tile.appendChild(img);
+      }
+      const body = document.createElement('div');
+      body.style.padding = '10px 12px';
+      const input = this._selectInput(view, item, index, position);
+      if (input) {
+        input.style.marginRight = '6px';
+        body.appendChild(input);
+      }
+      const title = document.createElement('strong');
+      title.textContent = fieldText(item, titleField) || `Item ${index + 1}`;
+      body.appendChild(title);
+      for (const f of otherFields) {
+        const text = fieldText(item, f);
+        if (!text) continue;
+        const d = document.createElement('div');
+        d.style.fontSize = '0.9em';
+        d.style.color = '#4b5563';
+        d.style.marginTop = '4px';
+        d.textContent = text;
+        body.appendChild(d);
+      }
+      tile.appendChild(body);
+      el.appendChild(tile);
+    });
+    return el;
+  }
+
+  renderCards(view, position = 'bottom') {
+    const el = this._scrollBox(view, 'grid');
+    const [titleField, ...descFields] = view.fields;
+    this.items.forEach((item, index) => {
+      const card = this._tile(view, 'appearance-card');
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      const img = this._image(item, view.image, fieldText(item, titleField));
+      if (img) {
+        img.style.aspectRatio = '16 / 9';
+        card.appendChild(img);
+      }
+      const body = document.createElement('div');
+      body.style.padding = '12px 16px';
+      body.style.flex = '1 1 auto';
+      const head = document.createElement('div');
+      head.style.display = 'flex';
+      head.style.alignItems = 'center';
+      head.style.gap = '8px';
+      const input = this._selectInput(view, item, index, position);
+      if (input) head.appendChild(input);
+      const title = document.createElement('h3');
+      title.style.margin = '0';
+      title.style.fontSize = '1.05em';
+      title.textContent = fieldText(item, titleField) || `Item ${index + 1}`;
+      head.appendChild(title);
+      body.appendChild(head);
+      for (const f of descFields) {
+        const text = fieldText(item, f);
+        if (!text) continue;
+        const p = document.createElement('p');
+        p.style.margin = '6px 0 0';
+        p.style.color = '#4b5563';
+        p.style.fontSize = '0.9em';
+        p.textContent = text;
+        body.appendChild(p);
+      }
+      card.appendChild(body);
+      const footerText = view.footer ? fieldText(item, view.footer) : '';
+      if (footerText) {
+        const footer = document.createElement('div');
+        footer.className = 'appearance-card-footer';
+        footer.style.padding = '8px 16px';
+        footer.style.borderTop = '1px solid #e5e7eb';
+        footer.style.fontWeight = '600';
+        footer.textContent = footerText;
+        card.appendChild(footer);
+      }
+      el.appendChild(card);
+    });
+    return el;
+  }
+
+  renderTable(view, position = 'bottom') {
+    const el = this._scrollBox(view);
+    const table = document.createElement('table');
+    table.className = 'appearance-table';
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.style.background = '#fff';
+    const labels = tableHeaders(view);
+    const hasSelect = view.selectiontype !== 'none';
+    const sort = view.sortable ? this._sort[position] || null : null;
+
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    const cellStyle = (c) => {
+      c.style.padding = '8px 12px';
+      c.style.textAlign = 'left';
+      c.style.borderBottom = '1px solid #e5e7eb';
+    };
+    const stickyTh = (th) => {
+      th.style.background = '#f9fafb';
+      if (view.sticky) {
+        th.style.position = 'sticky';
+        th.style.top = '0';
+        th.style.zIndex = '1';
+      }
+    };
+    if (hasSelect) {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      cellStyle(th);
+      stickyTh(th);
+      const sr = document.createElement('span');
+      sr.textContent = 'Select';
+      sr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap';
+      th.appendChild(sr);
+      hr.appendChild(th);
+    }
+    view.fields.forEach((field, i) => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      cellStyle(th);
+      stickyTh(th);
+      if (view.sortable) {
+        th.setAttribute('aria-sort', ariaSort(sort, field));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'appearance-sort';
+        btn.style.cssText = 'all:unset;cursor:pointer;font-weight:600';
+        const s = ariaSort(sort, field);
+        btn.textContent = labels[i] + (s === 'ascending' ? ' ▲' : s === 'descending' ? ' ▼' : '');
+        btn.addEventListener('click', () => {
+          this._sort[position] = nextSort(this._sort[position] || null, field);
+          this.render();
+        });
+        th.appendChild(btn);
+      } else {
+        th.textContent = labels[i];
+      }
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const order = sort ? sortedIndices(this.items, sort.field, sort.dir) : this.items.map((_, i) => i);
+    for (const index of order) {
+      const item = this.items[index];
+      const tr = document.createElement('tr');
+      tr.className = 'appearance-item appearance-row';
+      if (hasSelect) {
+        const td = document.createElement('td');
+        cellStyle(td);
+        const input = this._selectInput(view, item, index, position);
+        if (input) td.appendChild(input);
+        tr.appendChild(td);
+      }
+      view.fields.forEach((field) => {
+        const td = document.createElement('td');
+        cellStyle(td);
+        td.textContent = fieldText(item, field);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    el.appendChild(table);
     return el;
   }
 

@@ -11,7 +11,7 @@ export declare class Appearance {
   topview: NormalizedView | null;
   /** Normalized bottomview (`null` if absent or `name: 'none'`). */
   bottomview: NormalizedView | null;
-  /** Effective selection mode (from the first list view whose selectiontype is not `'none'`). */
+  /** Effective selection mode (from the first item view (list/grid/cards/table) whose selectiontype is not `'none'`). */
   selectionMode: SelectionType;
   resolveViews(): void;
   render(): void;
@@ -27,6 +27,12 @@ export declare class Appearance {
    */
   renderBanner(view: NormalizedView): HTMLDivElement;
   renderList(view: NormalizedView, position?: string): HTMLDivElement;
+  /** Responsive CSS grid of item tiles (`columns`, `gap`, `fields`, optional `image`). */
+  renderGrid(view: NormalizedView, position?: string): HTMLDivElement;
+  /** Cards with optional `image`, title (`fields[0]`), descriptions (`fields[1..]`) and `footer`. */
+  renderCards(view: NormalizedView, position?: string): HTMLDivElement;
+  /** Semantic `<table>`; `headers`, `sortable` (aria-sort), `sticky` header, row selection. */
+  renderTable(view: NormalizedView, position?: string): HTMLDivElement;
   update(newOptions: Partial<AppearanceOptions>): void;
   destroy(): void;
 }
