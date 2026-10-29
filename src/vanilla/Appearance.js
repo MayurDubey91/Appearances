@@ -23,6 +23,7 @@ export class Appearance {
     this.items = this.options.items || [];
     this._id = ++instanceSeq;
     this._inputs = [];
+    this._objectUrls = [];
 
     if (!this.container) {
       throw new Error('Appearance: container is required');
@@ -75,7 +76,13 @@ export class Appearance {
     }
   }
 
+  _revokeObjectUrls() {
+    for (const u of this._objectUrls) URL.revokeObjectURL(u);
+    this._objectUrls = [];
+  }
+
   render() {
+    this._revokeObjectUrls();
     this.container.replaceChildren();
     this._inputs = [];
     this.container.style.gap = '0';
@@ -189,7 +196,11 @@ export class Appearance {
       return el;
     }
 
-    const url = typeof file === 'string' ? file : URL.createObjectURL(file);
+    let url = file;
+    if (typeof file !== 'string') {
+      url = URL.createObjectURL(file);
+      this._objectUrls.push(url);
+    }
     const lower = url.toLowerCase();
     const blocked = () => {
       el.textContent = 'Banner (blocked unsafe URL)';
@@ -350,6 +361,8 @@ export class Appearance {
   }
 
   destroy() {
+    this._revokeObjectUrls();
+    this._inputs = [];
     if (this.container) this.container.replaceChildren();
   }
 }
