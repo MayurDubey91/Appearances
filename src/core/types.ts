@@ -13,6 +13,18 @@ export interface ViewConfig {
   scrollable?: boolean; // default false → sticky
   // Banner
   file?: string | File;
+  /**
+   * Inline-HTML banners are rendered inside `<iframe sandbox="" srcdoc>` (no
+   * scripts, no same-origin access) by default. Set `trustedHtml: true` to inject
+   * the HTML directly into the page instead. ONLY do this for HTML you control,
+   * or combine it with `sanitize`.
+   */
+  trustedHtml?: boolean;
+  /**
+   * Optional hook applied to inline-HTML banner content before rendering
+   * (both sandboxed and trusted modes), e.g. `(h) => DOMPurify.sanitize(h)`.
+   */
+  sanitize?: (html: string) => string;
   // List / item views
   selectiontype?: 'checklist' | 'select one';
   style?: 'Border' | 'shadow';
