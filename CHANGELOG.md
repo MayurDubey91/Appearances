@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+- New appearances `grid`, `cards` and `table`, in both the vanilla and React builds:
+  - `grid`: a responsive CSS grid of tiles. Options: `columns` (a number or `'auto'`), `gap`, `fields`, and an optional `image`.
+  - `cards`: cards with an optional `image`, a title (`fields[0]`), descriptions (`fields[1..]`) and an optional `footer` field.
+  - `table`: a semantic `<table>`. Options: `headers`, `sortable` (locale-aware and numeric, with `aria-sort`) and a `sticky` header.
+  - All three support `selectiontype` (`none`/`single`/`multiple`) and `style`, with the same selection API as `list`.
+- New option validation, which throws a `TypeError`: `columns`, `image`, `footer`, `headers`, `sortable`, `sticky`.
+- New core helpers: `fieldText`, `gridTemplate`, `tileStyle`, `tableHeaders`, `compareValues`, `sortedIndices`, `nextSort`, `ariaSort`, `ITEM_VIEWS`.
+- New types: `Columns`, `ItemViewName`, `SortDirection`, `SortState`.
+- New demos: `examples/grid.html`, `examples/cards.html`, `examples/table.html`.
+
+### Changed
+- The selection mode now comes from the first item view (`list`, `grid`, `cards` or `table`) whose `selectiontype` is not `'none'`.
+
+### Fixed
+- React: a `File` banner now renders as an image from an object URL, which is revoked on change or unmount, matching vanilla. Before, it showed "Banner (no file)". The empty-banner text now matches vanilla: "Banner (no file provided)".
+
 ## 0.2.0
 
 ### Breaking changes

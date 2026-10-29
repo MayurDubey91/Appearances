@@ -63,18 +63,61 @@ See [examples/usage.html](examples/usage.html) and [examples/example.html](examp
 
 | Option | Values | Default | Applies to |
 | --- | --- | --- | --- |
-| `name` | `'banner' \| 'list' \| 'none'` | required | all (`'none'` renders nothing) |
+| `name` | `'banner' \| 'list' \| 'grid' \| 'cards' \| 'table' \| 'none'` | required | all (`'none'` renders nothing) |
 | `ratio` | CSS length, e.g. `'30%'` | — | topview |
 | `placement` | `'top' \| 'left' \| 'right'` | `'top'` | topview |
 | `scrollable` | `boolean` | `false` (sticky) | topview |
 | `file` | URL, inline HTML, or `File` | — | banner |
 | `trustedHtml`, `sanitize` | see [Security](#security) | — | banner |
-| `selectiontype` | `'none' \| 'single' \| 'multiple'` | `'none'` | list |
-| `style` | `'none' \| 'border' \| 'shadow'` | `'none'` | list |
-| `fields` | `string[]` (item keys; first = title) | `['Name']` | list |
-| `gap` | CSS gap, e.g. `'1%'`, `'5px'` | `'8px'` | list |
+| `selectiontype` | `'none' \| 'single' \| 'multiple'` | `'none'` | list, grid, cards, table |
+| `style` | `'none' \| 'border' \| 'shadow'` | `'none'` | list, grid, cards, table |
+| `fields` | `string[]` (item keys; first = title) | `['Name']` | list, grid, cards, table |
+| `gap` | CSS gap, e.g. `'1%'`, `'5px'` | `'8px'` | list, grid, cards |
+| `columns` | positive integer or `'auto'` | `'auto'` | grid, cards |
+| `image` | item key holding an image URL (checked with `safeUrl`) | — | grid, cards |
+| `footer` | item key shown in the card footer | — | cards |
+| `headers` | `string[]` header labels (in `fields` order) | field names | table |
+| `sortable` | `boolean` (click a header: asc, then desc) | `false` | table |
+| `sticky` | `boolean` sticky header row | `false` | table |
 
 Option values are lowercase and matched exactly. An unknown value throws a `TypeError` that lists the accepted values. Validation lives in `normalizeView` / `normalizeViews` (exported from the package root) and is shared by the vanilla and React renderers.
+
+### Grid, cards and table (0.3.0)
+
+The same config object works for both builds.
+
+Vanilla (one script tag, global `Appearance`):
+
+```html
+<script src="https://unpkg.com/appearances/dist/appearances.global.js"></script>
+<div id="app"></div>
+<script>
+  const grid = new Appearance({
+    container: document.getElementById('app'),
+    items,
+    bottomview: { name: 'grid', columns: 'auto', gap: '12px', fields: ['Name', 'Price'], image: 'Image', selectiontype: 'multiple', style: 'shadow' },
+    onSelect: (selected) => console.log(selected),
+  });
+  grid.setSelection([1, 3]);
+</script>
+```
+
+React:
+
+```tsx
+import { Appearance } from 'appearances/react';
+
+<Appearance items={items} bottomview={{ name: 'cards', columns: 3, fields: ['Name', 'Description'], image: 'Image', footer: 'Price', selectiontype: 'single' }} onSelect={setPicked} />
+
+<Appearance items={items} bottomview={{ name: 'table', fields: ['Name', 'Price'], headers: ['Product', 'Price'], sortable: true, sticky: true, selectiontype: 'multiple' }} />
+```
+
+- **grid**: responsive CSS grid of tiles. `fields[0]` is the tile title. Other fields are shown below it. `image` is optional.
+- **cards**: an optional `image`, a title from `fields[0]`, descriptions from `fields[1..]`, and an optional `footer` field.
+- **table**: a semantic `<table>` with `<th scope="col">`. With `sortable`, each header is a button and gets `aria-sort`. Sorting is locale-aware, numbers sort numerically, and empty values go last. With `selectiontype`, each row gets a checkbox or radio.
+- Selection works the same as in `list`: `onSelect`, `getSelection`/`setSelection`, `defaultSelected`, and React `selected`, all by item id. All values are rendered as text, and image URLs that fail `safeUrl` are dropped.
+
+Demos: `examples/grid.html`, `examples/cards.html`, `examples/table.html`.
 
 ### Selection
 
