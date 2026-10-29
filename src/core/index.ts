@@ -1,6 +1,6 @@
 export * from './types';
-export * from './sanitize';
-export * from './normalize';
+export * from './sanitize.js';
+export * from './normalize.js';
 
 // Core framework-agnostic logic will live here
 // (layout calculations, appearance resolution, etc.)

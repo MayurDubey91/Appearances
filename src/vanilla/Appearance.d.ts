@@ -1,5 +1,5 @@
 import type { AppearanceItem, AppearanceOptions, Selection, SelectionType, SelectionValue } from '../core/types';
-import type { NormalizedView } from '../core/normalize';
+import type { NormalizedView } from '../core/normalize.js';
 
 /** Vanilla DOM renderer. Requires a DOM at construction time. Throws a TypeError on invalid option values. */
 export declare class Appearance {

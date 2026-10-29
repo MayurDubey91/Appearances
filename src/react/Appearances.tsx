@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { AppearanceOptions, Item, ItemId, SelectionType, SelectionValue } from '../core/types';
-import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize';
+import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize.js';
 import {
   normalizeViews,
   selectionMode,
@@ -10,7 +10,7 @@ import {
   resolveSelection,
   itemKey,
   type NormalizedView,
-} from '../core/normalize';
+} from '../core/normalize.js';
 
 export interface AppearanceProps extends Omit<AppearanceOptions, 'container'> {
   /** Controlled selection, by item id. When set, `onSelect` must be used to update it. */

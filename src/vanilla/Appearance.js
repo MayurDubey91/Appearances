@@ -3,7 +3,7 @@
  * Pure client-side. No API calls.
  */
 
-import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize';
+import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize.js';
 import {
   normalizeViews,
   selectionMode,
@@ -12,7 +12,7 @@ import {
   pruneSelectionKeys,
   resolveSelection,
   itemKey,
-} from '../core/normalize';
+} from '../core/normalize.js';
 
 let instanceSeq = 0;
 
