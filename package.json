@@ -1,6 +1,6 @@
 {
   "name": "appearances",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A flexible JS library for displaying items (lists, grids, cards, tables, etc.) with highly customizable appearances. Supports vanilla JS and React. Pure client-side — no API calls.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
