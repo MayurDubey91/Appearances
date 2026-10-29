@@ -1,5 +1,7 @@
 # Appearances
 
+[![CI](https://github.com/MayurDubey91/Appearances/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MayurDubey91/Appearances/actions/workflows/ci.yml)
+
 A flexible JS library for displaying items with different appearances (Banner, List, and more). Supports **vanilla JS** and **React**. Pure client-side — you supply the data, no API calls.
 
 ## Live demo on GitHub Pages
@@ -146,6 +148,21 @@ topview: { name: 'Banner', file: html, trustedHtml: true, sanitize: (h) => DOMPu
 ```
 
 `escapeHtml` and `safeUrl` are exported from the package root for your own templates.
+
+## Development
+
+Requires Node 18+.
+
+```bash
+npm ci                 # install exact dependencies from package-lock.json
+npm run build          # build dist/ with tsup (ESM, CJS, IIFE + types)
+npm test               # unit tests (Vitest + jsdom, React Testing Library)
+npm run test:watch     # tests in watch mode
+npm run test:coverage  # tests with V8 coverage report
+npm run ci             # typecheck, build, test, smoke:security, smoke:api
+```
+
+Tests live in `tests/`. CI (`.github/workflows/ci.yml`) runs `npm run ci` on Node 18, 20 and 22 for pushes and pull requests to `main`.
 
 ## License
 MIT
