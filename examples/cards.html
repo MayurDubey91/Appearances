@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appearances — Cards</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
+    #app { max-width: 960px; margin: 0 auto 16px; background: #fff; border-radius: 12px; height: 600px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    p { max-width: 960px; margin: 0 auto; } a { color: #0969da; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <p><a href="../index.html">← All demos</a> · Selected: <span id="sel">none</span></p>
+  <script type="module" src="../src/vanilla/Appearance.js"></script>
+  <script type="module">
+    const items = [
+      { id: 1, Name: 'Wireless Headphones', Description: 'Noise-cancelling, 30h battery', Price: 129, Image: 'https://picsum.photos/id/1/400/300' },
+      { id: 2, Name: 'Mechanical Keyboard', Description: 'RGB, hot-swappable switches', Price: 89, Image: 'https://picsum.photos/id/2/400/300' },
+      { id: 3, Name: '4K Monitor', Description: '27-inch IPS, 144Hz', Price: 349, Image: 'https://picsum.photos/id/3/400/300' },
+      { id: 4, Name: 'USB-C Hub', Description: '7-in-1 with HDMI and SD card', Price: 45, Image: 'https://picsum.photos/id/4/400/300' },
+      { id: 5, Name: 'Laptop Stand', Description: 'Aluminum, adjustable height', Price: 39, Image: 'https://picsum.photos/id/5/400/300' },
+      { id: 6, Name: '<b>Escaped</b> & safe', Description: 'Item data is always rendered as text', Price: 5, Image: 'javascript:alert(1)' }
+    ];
+    const sel = document.getElementById('sel');
+    new Appearance({
+      container: document.getElementById('app'),
+      items,
+      bottomview: { name: 'cards', columns: 3, gap: '16px', fields: ['Name', 'Description'], image: 'Image', footer: 'Price', selectiontype: 'single', style: 'border' },
+      onSelect: (s) => { sel.textContent = (Array.isArray(s) ? s : [s]).map((i) => i.Name).join(', ') || 'none'; }
+    });
+  </script>
+</body>
+</html>
