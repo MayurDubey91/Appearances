@@ -2,25 +2,26 @@
   "name": "appearances",
   "version": "0.1.0",
   "description": "A flexible JS library for displaying items (lists, grids, cards, tables, etc.) with highly customizable appearances. Supports vanilla JS and React. Pure client-side — no API calls.",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": : {
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./react": {
-      "import": "./dist/react.esm.js",
-      "require": "./dist/react.js",
-      "types": "./dist/react.d.ts"
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "require": "./dist/react/index.cjs"
     },
     "./vanilla": {
-      "import": "./dist/vanilla.esm.js",
-      "require": "./dist/vanilla.js",
-      "types": "./dist/vanilla.d.ts"
-    }
+      "types": "./dist/vanilla/index.d.ts",
+      "import": "./dist/vanilla/index.js",
+      "require": "./dist/vanilla/index.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -50,5 +51,13 @@
       "optional": true
     }
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/vanilla/Appearance.js",
+    "./dist/vanilla/*"
+  ]
 }
