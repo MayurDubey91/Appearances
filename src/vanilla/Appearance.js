@@ -3,7 +3,7 @@
  * Pure client-side. No API calls.
  */
 
-class Appearance {
+export class Appearance {
   constructor(options) {
     this.options = options || {};
     this.container = this.options.container;
@@ -301,10 +301,7 @@ class Appearance {
   }
 }
 
-// Export for module usage + global for plain script
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { Appearance };
-}
+// ESM export above; also expose a global for <script type="module"> demos
 if (typeof window !== 'undefined') {
   window.Appearance = Appearance;
 }
