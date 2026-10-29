@@ -48,7 +48,8 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run typecheck && npm run build",
-    "test": "echo \"TODO: add tests\""
+    "test": "echo \"TODO: add tests\"",
+    "smoke:security": "node scripts/security-smoke.mjs"
   },
   "keywords": [
     "grid",
@@ -72,6 +73,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
+    "jsdom": "^25.0.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   },
