@@ -52,7 +52,8 @@
         } else if (lower.endsWith('.pdf')) {
           const iframe = document.createElement('iframe'); iframe.src = url; iframe.style.width = '100%'; iframe.style.height = '400px'; iframe.style.border = 'none'; el.appendChild(iframe);
         } else if (typeof file === 'string' && file.trim().startsWith('<')) {
-          el.innerHTML = file;
+          // Untrusted HTML goes into a script-less sandboxed iframe (mirrors the library default).
+          const f = document.createElement('iframe'); f.setAttribute('sandbox', ''); f.srcdoc = file; f.style.width = '100%'; f.style.border = 'none'; el.appendChild(f);
         } else {
           const a = document.createElement('a'); a.href = url; a.textContent = 'Open file'; a.target = '_blank'; el.appendChild(a);
         }

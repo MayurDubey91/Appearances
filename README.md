@@ -55,5 +55,24 @@ src/
   react/                # React component
 ```
 
+## Security
+
+Defaults are safe for untrusted item data and banner content:
+
+- **Item fields** (List `fields`, names, descriptions) are always rendered as text (`textContent` / React text nodes), never parsed as HTML.
+- **Banner URLs** (image, video, pdf, link) are validated: only `http:`, `https:`, `blob:`, relative URLs, and `data:image/*` (images only) are allowed. `javascript:` and other schemes are blocked.
+- **Inline HTML banners** (`file` starting with `<`) render inside `<iframe sandbox="" srcdoc>` — no scripts, no same-origin access.
+
+Opt-ins on the Banner view config:
+
+- `trustedHtml: true` — inject the HTML directly into the page (`innerHTML` / `dangerouslySetInnerHTML`). Only for HTML you control.
+- `sanitize: (html) => string` — hook applied before rendering, e.g. with [DOMPurify](https://github.com/cure53/DOMPurify) (not bundled):
+
+```js
+topview: { name: 'Banner', file: html, trustedHtml: true, sanitize: (h) => DOMPurify.sanitize(h) }
+```
+
+`escapeHtml` and `safeUrl` are exported from the package root for your own templates.
+
 ## License
 MIT
