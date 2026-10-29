@@ -1,5 +1,6 @@
 import React from 'react';
 import type { AppearanceOptions, ViewConfig, AppearanceItem } from '../core/types';
+import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize';
 
 interface Props extends Omit<AppearanceOptions, 'container'> {}
 
@@ -22,20 +23,29 @@ function BannerView({ view }: { view: ViewConfig }) {
   const file = view.file;
   if (!file || typeof file !== 'string') return <div>Banner (no file)</div>;
 
+  // Inline HTML: sandboxed iframe unless the caller explicitly opts in with trustedHtml.
+  if (looksLikeHtml(file)) {
+    const { html, inject } = prepareBannerHtml(file, view);
+    if (inject) return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    return <iframe sandbox={HTML_SANDBOX} srcDoc={html} title="banner" style={{ width: '100%', height: '400px', border: 'none' }} />;
+  }
+
+  const blocked = <div>Banner (blocked unsafe URL)</div>;
   const lower = file.toLowerCase();
   if (lower.match(/\.(jpg|jpeg|png|gif|webp|svg)/) || lower.startsWith('data:image')) {
-    return <img src={file} alt="banner" style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />;
+    const src = safeUrl(file, 'image');
+    return src ? <img src={src} alt="banner" style={{ maxWidth: '100%', height: 'auto', display: 'block' }} /> : blocked;
   }
   if (lower.match(/\.(mp4|webm|ogg)/)) {
-    return <video src={file} controls style={{ maxWidth: '100%' }} />;
+    const src = safeUrl(file, 'video');
+    return src ? <video src={src} controls style={{ maxWidth: '100%' }} /> : blocked;
   }
   if (lower.endsWith('.pdf')) {
-    return <iframe src={file} style={{ width: '100%', height: '400px', border: 'none' }} title="pdf" />;
+    const src = safeUrl(file, 'pdf');
+    return src ? <iframe src={src} style={{ width: '100%', height: '400px', border: 'none' }} title="pdf" /> : blocked;
   }
-  if (file.trim().startsWith('<')) {
-    return <div dangerouslySetInnerHTML={{ __html: file }} />;
-  }
-  return <a href={file} target="_blank" rel="noreferrer">Open file</a>;
+  const href = safeUrl(file, 'link');
+  return href ? <a href={href} target="_blank" rel="noopener noreferrer">Open file</a> : blocked;
 }
 
 function ListView({ view, items }: { view: ViewConfig; items: AppearanceItem[] }) {
@@ -61,7 +71,7 @@ function ListView({ view, items }: { view: ViewConfig; items: AppearanceItem[] }
         >
           {selection === 'checklist' && <input type="checkbox" style={{ marginRight: 8 }} />}
           {selection === 'select one' && <input type="radio" name="appearance-select" style={{ marginRight: 8 }} />}
-          <strong>{item[titleField] ?? item.name ?? item.Name ?? `Item ${index + 1}`}</strong>
+          <strong>{String(item[titleField] ?? item.name ?? item.Name ?? `Item ${index + 1}`)}</strong>
           {otherFields.map(field => item[field] !== undefined && (
             <div key={field} style={{ fontSize: '0.9em', color: '#4b5563', marginTop: 4 }}>
               {String(item[field])}
