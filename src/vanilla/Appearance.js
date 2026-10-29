@@ -4,18 +4,32 @@
  */
 
 import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize';
+import {
+  normalizeViews,
+  selectionMode,
+  toSelectionKeys,
+  toggleSelectionKey,
+  pruneSelectionKeys,
+  resolveSelection,
+  itemKey,
+} from '../core/normalize';
+
+let instanceSeq = 0;
 
 export class Appearance {
   constructor(options) {
     this.options = options || {};
     this.container = this.options.container;
     this.items = this.options.items || [];
+    this._id = ++instanceSeq;
+    this._inputs = [];
 
     if (!this.container) {
       throw new Error('Appearance: container is required');
     }
 
     this.resolveViews();
+    this._selection = pruneSelectionKeys(this.items, toSelectionKeys(this.options.defaultSelected, this.selectionMode));
 
     // Ensure container can be measured for ratio
     if (!this.container.style.height && !this.container.style.minHeight) {
@@ -28,36 +42,42 @@ export class Appearance {
   }
 
   resolveViews() {
-    const hasTop = this.options.topview != null;
-    const hasBottom = this.options.bottomview != null;
+    // Validates options (throws TypeError on unknown values) and fills defaults.
+    // Neither view given → bottomview defaults to { name: 'list' }.
+    const { topview, bottomview } = normalizeViews(this.options);
+    this.topview = topview;
+    this.bottomview = bottomview;
+    this.selectionMode = selectionMode([topview, bottomview]);
+  }
 
-    if (!hasTop && !hasBottom) {
-      // Both missing → topview: None, bottomview: List
-      this.topview = null;
-      this.bottomview = { name: 'List' };
-    } else {
-      // Individual missing → None
-      this.topview = hasTop ? this.options.topview : null;
-      this.bottomview = hasBottom ? this.options.bottomview : null;
-    }
+  /** Current selection: `Item | null` (single), `Item[]` (multiple), `null` (none). */
+  getSelection() {
+    return resolveSelection(this.items, this._selection, this.selectionMode);
+  }
 
-    // Explicit None (name: 'None' or null) does nothing
-    if (this.topview && (this.topview.name === 'None' || this.topview.name == null)) {
-      this.topview = null;
-    }
-    if (this.bottomview && (this.bottomview.name === 'None' || this.bottomview.name == null)) {
-      this.bottomview = null;
-    }
+  /** Programmatically set the selection by item id(s). Does not call `onSelect`. */
+  setSelection(value) {
+    this._selection = pruneSelectionKeys(this.items, toSelectionKeys(value, this.selectionMode));
+    this._syncInputs();
+  }
 
-    // Defaults for topview
-    if (this.topview) {
-      this.topview.placement = this.topview.placement || 'top';
-      this.topview.scrollable = this.topview.scrollable === true; // default false
+  _syncInputs() {
+    for (const { input, key } of this._inputs) input.checked = this._selection.includes(key);
+  }
+
+  _toggle(index) {
+    const item = this.items[index];
+    this._selection = toggleSelectionKey(this._selection, itemKey(item, index), this.selectionMode);
+    this._syncInputs();
+    const selected = this.getSelection();
+    if (typeof this.options.onSelect === 'function' && selected) {
+      this.options.onSelect(selected, { index, item });
     }
   }
 
   render() {
     this.container.replaceChildren();
+    this._inputs = [];
     this.container.style.gap = '0';
     this.container.style.fontFamily = 'system-ui, sans-serif';
 
@@ -121,17 +141,13 @@ export class Appearance {
 
   renderView(view, position) {
     const wrapper = document.createElement('div');
-    wrapper.className = `appearance-${position} appearance-${(view.name || '').toLowerCase()}`;
+    wrapper.className = `appearance-${position} appearance-${view.name}`;
     this.applyRatio(wrapper, view, position);
 
-    switch ((view.name || '').toLowerCase()) {
-      case 'banner':
-        wrapper.appendChild(this.renderBanner(view));
-        break;
-      case 'list':
-      default:
-        wrapper.appendChild(this.renderList(view));
-        break;
+    if (view.name === 'banner') {
+      wrapper.appendChild(this.renderBanner(view));
+    } else {
+      wrapper.appendChild(this.renderList(view, position));
     }
 
     return wrapper;
@@ -249,9 +265,9 @@ export class Appearance {
     return el;
   }
 
-  renderList(view) {
+  renderList(view, position = 'bottom') {
     const el = document.createElement('div');
-    const gap = view.gap || '8px';
+    const gap = view.gap;
     el.style.display = 'flex';
     el.style.flexDirection = 'column';
     el.style.gap = gap;
@@ -260,15 +276,16 @@ export class Appearance {
     el.style.padding = '8px';
     el.style.boxSizing = 'border-box';
 
-    const fields = (view.fields || 'Name').split('||').map(f => f.trim()).filter(Boolean);
-    const titleField = fields[0] || 'Name';
-    const otherFields = fields.slice(1);
-
-    const style = (view.style || '').toLowerCase();
+    const [titleField = 'Name', ...otherFields] = view.fields;
+    const style = view.style;
     const selection = view.selectiontype;
+    // Only the list that drives the instance's selection mode is interactive.
+    const interactive = selection !== 'none' && selection === this.selectionMode;
+    const radioName = `appearance-select-${this._id}-${position}`;
 
     this.items.forEach((item, index) => {
       const li = document.createElement('div');
+      li.className = 'appearance-item';
       li.style.padding = '12px 16px';
       li.style.borderRadius = '8px';
       li.style.background = '#fff';
@@ -283,17 +300,20 @@ export class Appearance {
         li.style.border = '1px solid #e5e7eb';
       }
 
-      if (selection === 'checklist') {
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.style.marginRight = '8px';
-        li.appendChild(cb);
-      } else if (selection === 'select one') {
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'appearance-select';
-        radio.style.marginRight = '8px';
-        li.appendChild(radio);
+      if (selection === 'multiple' || selection === 'single') {
+        const input = document.createElement('input');
+        input.type = selection === 'multiple' ? 'checkbox' : 'radio';
+        if (selection === 'single') input.name = radioName;
+        input.style.marginRight = '8px';
+        if (interactive) {
+          const key = itemKey(item, index);
+          input.checked = this._selection.includes(key);
+          input.addEventListener('change', () => this._toggle(index));
+          this._inputs.push({ input, key });
+        } else {
+          input.disabled = true;
+        }
+        li.appendChild(input);
       }
 
       const content = document.createElement('div');
@@ -325,6 +345,7 @@ export class Appearance {
     Object.assign(this.options, newOptions);
     this.items = this.options.items || this.items;
     this.resolveViews();
+    this._selection = pruneSelectionKeys(this.items, toSelectionKeys(this._selection, this.selectionMode));
     this.render();
   }
 

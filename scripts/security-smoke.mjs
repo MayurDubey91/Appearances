@@ -10,28 +10,28 @@ const payload = '<img src=x onerror=alert(1)>';
 const c = document.getElementById('c');
 const check = (name, fn) => { fn(); console.log('PASS', name); };
 
-new Appearance({ container: c, items: [{ id: 1, Name: payload, Description: payload }], bottomview: { name: 'List', fields: 'Name||Description' } });
+new Appearance({ container: c, items: [{ id: 1, Name: payload, Description: payload }], bottomview: { name: 'list', fields: ['Name', 'Description'] } });
 check('field values rendered as text, no <img> injected', () => {
   assert.equal(c.querySelectorAll('img').length, 0);
   assert.ok(c.textContent.includes(payload));
 });
 
 for (const url of ['javascript:alert(1)', ' JaVaScRiPt:alert(1)', 'java\tscript:alert(1)', 'data:text/html,<script>alert(1)</script>']) {
-  new Appearance({ container: c, items: [], topview: { name: 'Banner', file: url } });
+  new Appearance({ container: c, items: [], topview: { name: 'banner', file: url } });
   check(`banner URL blocked: ${JSON.stringify(url)}`, () => {
     assert.equal(c.querySelector('a, img, iframe, video'), null);
     assert.match(c.textContent, /blocked/);
   });
 }
 
-new Appearance({ container: c, items: [], topview: { name: 'Banner', file: payload } });
+new Appearance({ container: c, items: [], topview: { name: 'banner', file: payload } });
 check('HTML banner sandboxed in iframe by default', () => {
   const f = c.querySelector('iframe');
   assert.ok(f && f.getAttribute('sandbox') === '' && f.srcdoc === payload);
   assert.equal(c.querySelector('img'), null);
 });
 
-new Appearance({ container: c, items: [], topview: { name: 'Banner', file: payload, trustedHtml: true, sanitize: (h) => h.replace(/\s+on\w+=[^\s>]+/g, '') } });
+new Appearance({ container: c, items: [], topview: { name: 'banner', file: payload, trustedHtml: true, sanitize: (h) => h.replace(/\s+on\w+=[^\s>]+/g, '') } });
 check('trustedHtml + sanitize hook injects sanitized HTML', () => {
   const img = c.querySelector('img');
   assert.ok(img && !img.hasAttribute('onerror'));
