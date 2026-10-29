@@ -36,19 +36,20 @@
       container: document.getElementById('app'),
       items: testData,
       topview: {
-        name: 'Banner',
+        name: 'banner',
         file: 'banner.jpg',
         ratio: '30%',
         placement: 'left',      // top | left | right (default: top)
         scrollable: false       // default false → sticky
       },
       bottomview: {
-        name: 'List',
-        selectiontype: 'checklist',
-        style: 'Border',
-        fields: 'Name||Description||Price',
+        name: 'list',
+        selectiontype: 'multiple',  // none | single | multiple
+        style: 'border',            // none | border | shadow
+        fields: ['Name', 'Description', 'Price'],
         gap: '12px'
-      }
+      },
+      onSelect: (selected) => console.log('selected', selected)
     });
 
     window.appearanceInstance = instance;

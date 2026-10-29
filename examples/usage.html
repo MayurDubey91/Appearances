@@ -19,51 +19,60 @@
   container: document.getElementById('app'),
   items: data,
   topview: {
-    name: 'Banner',
+    name: 'banner',
     file: 'https://example.com/banner.jpg'  // image, pdf, video, html, or other
   },
   bottomview: {
-    name: 'List',
-    selectiontype: 'checklist',   // or 'select one'
-    style: 'Border',              // or 'shadow'
-    fields: 'Name||Description',  // first field = title
-    gap: '1%'                     // or '5px', '2%', etc.
-  }
+    name: 'list',
+    selectiontype: 'multiple',          // 'none' | 'single' | 'multiple'
+    style: 'border',                    // 'none' | 'border' | 'shadow'
+    fields: ['Name', 'Description'],    // first field = title
+    gap: '1%'                           // or '5px', '2%', etc.
+  },
+  defaultSelected: [1],                 // item id(s)
+  onSelect: (selected, { index, item }) => console.log(selected)
 });
 
 // Later
+instance.getSelection();                // Item | null (single), Item[] (multiple)
+instance.setSelection([1, 3]);          // by id; does not call onSelect
 instance.update({ items: newData });
 instance.destroy();
 </code></pre>
 
   <h2>React</h2>
-  <pre><code><Appearance
+  <pre><code>const [selected, setSelected] = useState([]);
+
+<Appearance
   items={data}
-  topview={{ name: 'Banner', file: '...' }}
+  topview={{ name: 'banner', file: '...' }}
   bottomview={{
-    name: 'List',
-    selectiontype: 'checklist',
-    style: 'Border',
-    fields: 'Name||Description',
+    name: 'list',
+    selectiontype: 'multiple',
+    style: 'border',
+    fields: ['Name', 'Description'],
     gap: '1%'
   }}
+  selected={selected}                                   // or defaultSelected for uncontrolled
+  onSelect={(items) => setSelected(items.map((i) => i.id))}
 />
 </code></pre>
 
   <h2>View options</h2>
   <ul>
-    <li><strong>name</strong>: <code>'Banner'</code> | <code>'List'</code> | (more coming)</li>
+    <li><strong>name</strong>: <code>'banner'</code> | <code>'list'</code> | <code>'none'</code></li>
     <li><strong>file</strong> (Banner): URL or content for image / pdf / video / html / other</li>
-    <li><strong>selectiontype</strong>: <code>'checklist'</code> or <code>'select one'</code></li>
-    <li><strong>style</strong>: <code>'Border'</code> or <code>'shadow'</code></li>
-    <li><strong>fields</strong>: e.g. <code>'Name||Description||Price'</code> — first is the title</li>
+    <li><strong>selectiontype</strong>: <code>'none'</code> (default) | <code>'single'</code> | <code>'multiple'</code></li>
+    <li><strong>style</strong>: <code>'none'</code> (default) | <code>'border'</code> | <code>'shadow'</code></li>
+    <li><strong>fields</strong>: e.g. <code>['Name', 'Description', 'Price']</code> — first is the title</li>
     <li><strong>gap</strong>: CSS gap value (<code>'1%'</code>, <code>'5px'</code>, <code>'10px'</code>, …)</li>
   </ul>
 
   <h2>Notes</h2>
   <ul>
     <li>Any view can be used as topview or bottomview.</li>
-    <li>If <code>fields</code> is omitted it defaults to <code>Name</code>.</li>
+    <li>If <code>fields</code> is omitted it defaults to <code>['Name']</code>.</li>
+    <li>Option values are lowercase and matched exactly; unknown values throw a <code>TypeError</code>.</li>
     <li>This is the first draft — more views and options will be added.</li>
   </ul>
 

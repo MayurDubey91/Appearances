@@ -32,7 +32,7 @@
       }
       renderView(view, position) {
         const wrapper = document.createElement('div');
-        switch ((view.name || '').toLowerCase()) {
+        switch (view.name) {
           case 'banner': wrapper.appendChild(this.renderBanner(view)); break;
           default: wrapper.appendChild(this.renderList(view)); break;
         }
@@ -62,25 +62,34 @@
       renderList(view) {
         const el = document.createElement('div');
         el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.gap = view.gap || '8px';
-        const fields = (view.fields || 'Name').split('||').map(f => f.trim()).filter(Boolean);
-        const titleField = fields[0] || 'Name';
-        const otherFields = fields.slice(1);
-        const style = (view.style || '').toLowerCase();
-        const selection = view.selectiontype;
+        const [titleField = 'Name', ...otherFields] = view.fields || ['Name'];
+        const style = view.style || 'none';
+        const selection = view.selectiontype || 'none';
+        const name = 'appearance-select-' + Math.random().toString(36).slice(2);
         this.items.forEach((item, i) => {
           const li = document.createElement('div');
           li.style.padding = '12px 16px'; li.style.borderRadius = '8px'; li.style.background = '#fff';
           if (style === 'border') li.style.border = '1px solid #d1d5db';
           else if (style === 'shadow') { li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'; li.style.border = '1px solid transparent'; }
           else li.style.border = '1px solid #e5e7eb';
-          if (selection === 'checklist') { const cb = document.createElement('input'); cb.type = 'checkbox'; cb.style.marginRight = '8px'; li.appendChild(cb); }
-          else if (selection === 'select one') { const r = document.createElement('input'); r.type = 'radio'; r.name = 'appearance-select'; r.style.marginRight = '8px'; li.appendChild(r); }
+          if (selection === 'multiple' || selection === 'single') {
+            const input = document.createElement('input'); input.type = selection === 'multiple' ? 'checkbox' : 'radio'; input.name = name; input.style.marginRight = '8px';
+            input.addEventListener('change', () => this.toggle(item, i, selection));
+            li.appendChild(input);
+          }
           const content = document.createElement('div'); content.style.display = 'inline-block';
           const title = document.createElement('strong'); title.textContent = item[titleField] ?? item.Name ?? `Item ${i+1}`; content.appendChild(title);
           otherFields.forEach(f => { if (item[f] != null) { const p = document.createElement('div'); p.style.fontSize = '0.9em'; p.style.color = '#4b5563'; p.style.marginTop = '4px'; p.textContent = item[f]; content.appendChild(p); } });
           li.appendChild(content); el.appendChild(li);
         });
         return el;
+      }
+      toggle(item, index, mode) {
+        // Simplified mirror of the library's selection API (selected ids → onSelect).
+        if (mode === 'single') this.selected = [item.id];
+        else this.selected = (this.selected || []).includes(item.id) ? this.selected.filter(id => id !== item.id) : [...(this.selected || []), item.id];
+        const picked = this.items.filter(it => this.selected.includes(it.id));
+        if (this.options.onSelect) this.options.onSelect(mode === 'single' ? picked[0] : picked, { index, item });
       }
     }
 
@@ -93,8 +102,9 @@
     new Appearance({
       container: document.getElementById('app'),
       items: testData,
-      topview: { name: 'Banner', file: 'https://picsum.photos/800/180' },
-      bottomview: { name: 'List', selectiontype: 'checklist', style: 'shadow', fields: 'Name||Description||Price', gap: '10px' }
+      topview: { name: 'banner', file: 'https://picsum.photos/800/180' },
+      bottomview: { name: 'list', selectiontype: 'multiple', style: 'shadow', fields: ['Name', 'Description', 'Price'], gap: '10px' },
+      onSelect: (selected) => console.log('selected', selected)
     });
   </script>
 </body>

@@ -43,19 +43,20 @@
       container: document.getElementById('app'),
       items: testData,
       topview: {
-        name: 'Banner',
+        name: 'banner',
         file: 'examples/banner.jpg',
         ratio: '30%',
         placement: 'top',
         scrollable: false
       },
       bottomview: {
-        name: 'List',
-        selectiontype: 'checklist',
-        style: 'Border',
-        fields: 'Name||Description||Price',
+        name: 'list',
+        selectiontype: 'multiple',  // none | single | multiple
+        style: 'border',            // none | border | shadow
+        fields: ['Name', 'Description', 'Price'],
         gap: '12px'
-      }
+      },
+      onSelect: (selected) => console.log('selected', selected)
     });
   </script>
 </body>
