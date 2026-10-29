@@ -3,6 +3,8 @@
  * Pure client-side. No API calls.
  */
 
+import { safeUrl, looksLikeHtml, prepareBannerHtml, HTML_SANDBOX } from '../core/sanitize';
+
 export class Appearance {
   constructor(options) {
     this.options = options || {};
@@ -55,7 +57,7 @@ export class Appearance {
   }
 
   render() {
-    this.container.innerHTML = '';
+    this.container.replaceChildren();
     this.container.style.gap = '0';
     this.container.style.fontFamily = 'system-ui, sans-serif';
 
@@ -152,8 +154,48 @@ export class Appearance {
       return el;
     }
 
+    // Inline HTML content: sandboxed iframe by default, direct injection only if trustedHtml.
+    if (typeof file === 'string' && looksLikeHtml(file)) {
+      const { html, inject } = prepareBannerHtml(file, view);
+      if (inject) {
+        el.innerHTML = html; // explicit opt-in: trustedHtml === true
+        el.style.overflow = 'auto';
+      } else {
+        const frame = document.createElement('iframe');
+        frame.setAttribute('sandbox', HTML_SANDBOX);
+        frame.srcdoc = html;
+        frame.title = 'Banner';
+        frame.style.width = '100%';
+        frame.style.height = '100%';
+        frame.style.border = 'none';
+        el.appendChild(frame);
+      }
+      return el;
+    }
+
     const url = typeof file === 'string' ? file : URL.createObjectURL(file);
     const lower = url.toLowerCase();
+    const blocked = () => {
+      el.textContent = 'Banner (blocked unsafe URL)';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      return el;
+    };
+    const safeLink = safeUrl(url, 'link');
+    const appendLink = () => {
+      if (!safeLink) return blocked();
+      const link = document.createElement('a');
+      link.href = safeLink;
+      link.textContent = 'Open file';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.appendChild(link);
+      return el;
+    };
 
     const isImage =
       lower.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/) ||
@@ -166,52 +208,42 @@ export class Appearance {
       (!lower.match(/\.(pdf|mp4|webm|ogg|html|txt|json|zip)(\?|$)/) && !lower.startsWith('data:'));
 
     if (isImage) {
+      const src = safeUrl(url, 'image');
+      if (!src) return blocked();
       const img = document.createElement('img');
-      img.src = url;
+      img.src = src;
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.objectFit = 'cover';
       img.style.display = 'block';
       img.alt = 'Banner';
       img.onerror = () => {
-        el.innerHTML = '';
-        const link = document.createElement('a');
-        link.href = url;
-        link.textContent = 'Open file';
-        link.target = '_blank';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.justifyContent = 'center';
-        el.appendChild(link);
+        el.replaceChildren();
+        appendLink();
       };
       el.appendChild(img);
     } else if (lower.match(/\.(mp4|webm|ogg)(\?|$)/) || lower.startsWith('data:video')) {
+      const src = safeUrl(url, 'video');
+      if (!src) return blocked();
       const video = document.createElement('video');
-      video.src = url;
+      video.src = src;
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
       video.style.objectFit = 'cover';
       el.appendChild(video);
     } else if (lower.match(/\.pdf(\?|$)/)) {
+      const src = safeUrl(url, 'pdf');
+      if (!src) return blocked();
       const iframe = document.createElement('iframe');
-      iframe.src = url;
+      iframe.src = src;
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       iframe.style.border = 'none';
       el.appendChild(iframe);
-    } else if (lower.endsWith('.html') || lower.includes('text/html') || (typeof file === 'string' && file.trim().startsWith('<'))) {
-      el.innerHTML = typeof file === 'string' ? file : 'HTML content';
-      el.style.overflow = 'auto';
     } else {
-      const link = document.createElement('a');
-      link.href = url;
-      link.textContent = 'Open file';
-      link.target = '_blank';
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      el.appendChild(link);
+      // .html URLs, Files and other resources: plain link (never injected).
+      appendLink();
     }
 
     return el;
@@ -268,7 +300,7 @@ export class Appearance {
       content.style.display = 'inline-block';
 
       const title = document.createElement('strong');
-      title.textContent = item[titleField] ?? item.name ?? item.Name ?? `Item ${index + 1}`;
+      title.textContent = String(item[titleField] ?? item.name ?? item.Name ?? `Item ${index + 1}`);
       content.appendChild(title);
 
       otherFields.forEach(field => {
@@ -277,7 +309,7 @@ export class Appearance {
           p.style.fontSize = '0.9em';
           p.style.color = '#4b5563';
           p.style.marginTop = '4px';
-          p.textContent = item[field];
+          p.textContent = String(item[field]); // textContent: item data is never parsed as HTML
           content.appendChild(p);
         }
       });
@@ -297,7 +329,7 @@ export class Appearance {
   }
 
   destroy() {
-    if (this.container) this.container.innerHTML = '';
+    if (this.container) this.container.replaceChildren();
   }
 }
 
