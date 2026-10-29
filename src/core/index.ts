@@ -1,5 +1,6 @@
 export * from './types';
 export * from './sanitize';
+export * from './normalize';
 
 // Core framework-agnostic logic will live here
 // (layout calculations, appearance resolution, etc.)
